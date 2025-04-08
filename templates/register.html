@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Task Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h2 class="text-center mb-4">Create Your Account</h2>
+                    
+                    <!-- Registration form -->
+                    <form id="signup-form">
+                        <div class="mb-3">
+                            <label for="signup-name" class="form-label">Display Name</label>
+                            <input type="text" class="form-control" id="signup-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="signup-email" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="signup-email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="signup-password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="signup-password" required minlength="6">
+                            <div class="form-text">Password must be at least 6 characters</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="signup-confirm-password" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="signup-confirm-password" required minlength="6">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Create Account</button>
+                    </form>
+                    
+                    <div class="text-center mt-3">
+                        <p>Already have an account? <a href="/login">Log in here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Override Firebase Config with server-provided values -->
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
+    import { getAuth } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
+    import { signUpWithEmail, showError } from '/static/js/firebase-auth.js';
+    
+    const firebaseConfig = {
+        apiKey: "{{ firebase_config.apiKey }}",
+        authDomain: "{{ firebase_config.authDomain }}",
+        projectId: "{{ firebase_config.projectId }}",
+        storageBucket: "{{ firebase_config.storageBucket }}",
+        appId: "{{ firebase_config.appId }}"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    window.auth = getAuth(firebaseApp);
+
+    // Wait for firebase-auth.js to fully load and register its globals
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('signup-form');
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+
+            if (password !== confirmPassword) {
+                if (window.showError) {
+                    window.showError('Passwords do not match');
+                } else {
+                    alert('Passwords do not match');
+                }
+                return;
+            }
+
+            if (window.signUpWithEmail) {
+                window.signUpWithEmail(email, password, name);
+            } else {
+                alert("signUpWithEmail is not loaded yet.");
+            }
+        });
+    });
+</script>
+{% endblock %}

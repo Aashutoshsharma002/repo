@@ -1,0 +1,623 @@
+{% extends "base.html" %}
+
+{% block title %}Board - Task Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <a href="/" class="btn btn-sm btn-outline-secondary me-2">
+            <i class="fas fa-arrow-left"></i> Back to Boards
+        </a>
+        <h2 id="board-name">Loading board...</h2>
+    </div>
+    <div class="btn-toolbar">
+        <div class="btn-group me-2" id="owner-actions" style="display: none;">
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                <i class="fas fa-user-plus"></i> Add User
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editBoardModal">
+                <i class="fas fa-edit"></i> Rename
+            </button>
+        </div>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+            <i class="fas fa-plus"></i> Add Task
+        </button>
+    </div>
+</div>
+
+<!-- Task counts -->
+<div class="mb-4 p-3 bg-dark rounded">
+    <div class="task-counts">
+        <span class="badge bg-info" id="total-tasks">0</span> Total Tasks
+    </div>
+    <div class="task-counts">
+        <span class="badge bg-warning" id="active-tasks">0</span> Active
+    </div>
+    <div class="task-counts">
+        <span class="badge bg-success" id="completed-tasks">0</span> Completed
+    </div>
+</div>
+
+<!-- Board users -->
+<div class="mb-4">
+    <h5>Board Members</h5>
+    <div id="board-users" class="mt-2">
+        <!-- Users will be loaded here -->
+        <div class="spinner-border spinner-border-sm" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Tasks -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Tasks</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col" style="width: 50px">Status</th>
+                                <th scope="col">Title</th>
+                                <th scope="col">Assigned To</th>
+                                <th scope="col">Due Date</th>
+                                <th scope="col" style="width: 120px">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tasks-container">
+                            <!-- Tasks will be loaded here -->
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-3">Loading tasks...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Task Modal -->
+<div class="modal fade" id="createTaskModal" tabindex="-1" aria-labelledby="createTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createTaskModalLabel">Create New Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTaskForm">
+                    <div class="mb-3">
+                        <label for="taskTitle" class="form-label">Task Title</label>
+                        <input type="text" class="form-control" id="taskTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskDescription" class="form-label">Description (optional)</label>
+                        <textarea class="form-control" id="taskDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskDueDate" class="form-label">Due Date (optional)</label>
+                        <input type="datetime-local" class="form-control" id="taskDueDate">
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskAssignees" class="form-label">Assign To (optional)</label>
+                        <select class="form-control" id="taskAssignees" multiple style="width: 100%"></select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="createTaskBtn">Create Task</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Task Modal -->
+<div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTaskModalLabel">Edit Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTaskForm">
+                    <input type="hidden" id="editTaskId">
+                    <div class="mb-3">
+                        <label for="editTaskTitle" class="form-label">Task Title</label>
+                        <input type="text" class="form-control" id="editTaskTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editTaskDescription" class="form-label">Description (optional)</label>
+                        <textarea class="form-control" id="editTaskDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editTaskDueDate" class="form-label">Due Date (optional)</label>
+                        <input type="datetime-local" class="form-control" id="editTaskDueDate">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editTaskAssignees" class="form-label">Assign To (optional)</label>
+                        <select class="form-control" id="editTaskAssignees" multiple style="width: 100%"></select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="updateTaskBtn">Update Task</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Board Modal -->
+<div class="modal fade" id="editBoardModal" tabindex="-1" aria-labelledby="editBoardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editBoardModalLabel">Rename Board</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editBoardForm">
+                    <div class="mb-3">
+                        <label for="editBoardName" class="form-label">Board Name</label>
+                        <input type="text" class="form-control" id="editBoardName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editBoardDescription" class="form-label">Description (optional)</label>
+                        <textarea class="form-control" id="editBoardDescription" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="updateBoardBtn">Update Board</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUserModalLabel">Add User to Board</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm">
+                    <div class="mb-3">
+                        <label for="userEmail" class="form-label">User Email</label>
+                        <input type="email" class="form-control" id="userEmail" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="addUserBtn">Add User</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Initialize Firebase with server-provided config -->
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
+    import { getAuth } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
+    
+    // Firebase configuration from server variables
+    const firebaseConfig = {
+        apiKey: "{{ firebase_config.apiKey }}",
+        authDomain: "{{ firebase_config.authDomain }}",
+        projectId: "{{ firebase_config.projectId }}",
+        storageBucket: "{{ firebase_config.storageBucket }}",
+        appId: "{{ firebase_config.appId }}"
+    };
+    
+    // Initialize Firebase with the server-provided config
+    const firebaseApp = initializeApp(firebaseConfig);
+    // Make auth available globally for the auth.js script
+    window.auth = getAuth(firebaseApp);
+
+    // Get board ID from URL
+    const boardId = '{{ board_id }}';
+    let boardData = null;
+    let boardUsers = [];
+    let boardTasks = [];
+    let isOwner = false;
+    
+    // Load board when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadBoard();
+        
+        // Initialize select2 for task assignees
+        initializeSelect2('#taskAssignees');
+        initializeSelect2('#editTaskAssignees');
+    });
+    
+    // Function to load the board
+    async function loadBoard() {
+        const data = await getBoard(boardId);
+        if (!data) {
+            window.location.href = '/';
+            return;
+        }
+        
+        boardData = data.board;
+        boardUsers = data.users;
+        boardTasks = data.tasks;
+        isOwner = data.is_owner;
+        
+        // Show owner actions if user is owner
+        if (isOwner) {
+            document.getElementById('owner-actions').style.display = 'inline-flex';
+        }
+        
+        // Update board name
+        document.getElementById('board-name').textContent = boardData.name;
+        
+        // Load board users
+        loadBoardUsers();
+        
+        // Load tasks
+        loadTasks();
+        
+        // Pre-fill edit board form
+        document.getElementById('editBoardName').value = boardData.name;
+        document.getElementById('editBoardDescription').value = boardData.description || '';
+    }
+    
+    // Function to load board users
+    function loadBoardUsers() {
+        const usersContainer = document.getElementById('board-users');
+        usersContainer.innerHTML = '';
+        
+        boardUsers.forEach(user => {
+            const isCreator = user.id === boardData.creator_id;
+            
+            const userElement = document.createElement('div');
+            userElement.className = 'user-pill';
+            userElement.innerHTML = `
+                <div class="avatar">${user.display_name.charAt(0).toUpperCase()}</div>
+                <span>${user.display_name || user.email}</span>
+                ${isCreator ? '<span class="badge bg-primary ms-1">Owner</span>' : ''}
+                ${isOwner && !isCreator ? `
+                    <button class="btn btn-sm btn-link text-danger p-0 ms-2" onclick="removeUser('${user.id}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                ` : ''}
+            `;
+            
+            usersContainer.appendChild(userElement);
+        });
+    }
+    
+    // Function to load tasks
+    function loadTasks() {
+        const tasksContainer = document.getElementById('tasks-container');
+        tasksContainer.innerHTML = '';
+        
+        // Update task counts
+        const totalTasks = boardTasks.length;
+        const completedTasks = boardTasks.filter(task => task.completed).length;
+        const activeTasks = totalTasks - completedTasks;
+        
+        document.getElementById('total-tasks').textContent = totalTasks;
+        document.getElementById('active-tasks').textContent = activeTasks;
+        document.getElementById('completed-tasks').textContent = completedTasks;
+        
+        if (boardTasks.length === 0) {
+            tasksContainer.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center py-4">
+                        <i class="fas fa-tasks fa-2x mb-3 text-muted"></i>
+                        <p>No tasks yet. Create your first task!</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        // Sort tasks: active first, then by due date
+        boardTasks.sort((a, b) => {
+            if (a.completed !== b.completed) return a.completed ? 1 : -1;
+            if (a.due_date && b.due_date) return new Date(a.due_date) - new Date(b.due_date);
+            if (a.due_date) return -1;
+            if (b.due_date) return 1;
+            return 0;
+        });
+        
+        // Render tasks
+        boardTasks.forEach(task => {
+            const row = document.createElement('tr');
+            
+            // Add appropriate classes for task state
+            if (task.completed) {
+                row.classList.add('task-complete');
+            } else if (task.unassigned) {
+                row.classList.add('task-unassigned');
+            }
+            
+            // Format due date with warning colors if approaching or past due
+            let dueDateDisplay = 'No due date';
+            let dueDateClass = '';
+            
+            if (task.due_date) {
+                dueDateDisplay = formatDate(task.due_date);
+                
+                const now = new Date();
+                const dueDate = new Date(task.due_date);
+                const daysUntilDue = Math.floor((dueDate - now) / (1000 * 60 * 60 * 24));
+                
+                if (!task.completed) {
+                    if (dueDate < now) {
+                        dueDateClass = 'due-date-danger';
+                    } else if (daysUntilDue <= 2) {
+                        dueDateClass = 'due-date-warning';
+                    }
+                }
+            }
+            
+            // Get assigned users
+            const assignedUsers = task.assigned_to?.map(userId => {
+                const user = boardUsers.find(u => u.id === userId);
+                return user ? user.display_name || user.email : 'Unknown User';
+            }).join(', ') || 'Unassigned';
+            
+            row.innerHTML = `
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" 
+                            ${task.completed ? 'checked' : ''}
+                            onchange="completeTask('${task.id}', this.checked)">
+                    </div>
+                </td>
+                <td>
+                    <div>${task.title}</div>
+                    <small class="text-muted">${task.description || ''}</small>
+                </td>
+                <td>${assignedUsers}</td>
+                <td class="${dueDateClass}">${dueDateDisplay}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="editTask('${task.id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="confirmDeleteTask('${task.id}', '${task.title}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            
+            tasksContainer.appendChild(row);
+        });
+    }
+    
+    // Function to mark a task as complete/incomplete - make globally available
+    window.completeTask = async function(taskId, isCompleted) {
+        const task = await toggleTaskCompletion(taskId);
+        if (task) {
+            // Update task in local array
+            const index = boardTasks.findIndex(t => t.id === taskId);
+            if (index !== -1) {
+                boardTasks[index] = task;
+                loadTasks();
+            }
+        }
+    }
+    
+    // Function to edit a task - make globally available
+    window.editTask = function(taskId) {
+        const task = boardTasks.find(t => t.id === taskId);
+        if (!task) return;
+        
+        // Fill edit form
+        document.getElementById('editTaskId').value = task.id;
+        document.getElementById('editTaskTitle').value = task.title;
+        document.getElementById('editTaskDescription').value = task.description || '';
+        
+        if (task.due_date) {
+            const dueDate = new Date(task.due_date);
+            document.getElementById('editTaskDueDate').value = dueDate.toISOString().slice(0, 16);
+        } else {
+            document.getElementById('editTaskDueDate').value = '';
+        }
+        
+        // Clear existing options
+        const select = $('#editTaskAssignees');
+        select.empty();
+        
+        // Add board users as options
+        boardUsers.forEach(user => {
+            const option = new Option(user.display_name || user.email, user.id, false, task.assigned_to?.includes(user.id));
+            select.append(option);
+        });
+        
+        select.trigger('change');
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('editTaskModal'));
+        modal.show();
+    }
+    
+    // Function to remove a user from the board - make globally available
+    window.removeUser = async function(userId) {
+        if (!confirm('Are you sure you want to remove this user from the board?')) {
+            return;
+        }
+        
+        const result = await removeUserFromBoard(boardId, userId);
+        if (result) {
+            showToast('User removed successfully!');
+            loadBoard();
+        }
+    }
+    
+    // Function to confirm task deletion - make globally available
+    window.confirmDeleteTask = function(taskId, taskTitle) {
+        if (confirm(`Are you sure you want to delete the task "${taskTitle}"?`)) {
+            deleteTask(taskId).then(result => {
+                if (result) {
+                    showToast('Task deleted successfully!');
+                    
+                    // Remove task from local array
+                    boardTasks = boardTasks.filter(t => t.id !== taskId);
+                    loadTasks();
+                }
+            });
+        }
+    }
+    
+    // Handle create task form submission
+    document.getElementById('createTaskBtn').addEventListener('click', async function() {
+        const title = document.getElementById('taskTitle').value.trim();
+        const description = document.getElementById('taskDescription').value.trim();
+        const dueDateInput = document.getElementById('taskDueDate').value;
+        const assignees = $('#taskAssignees').val();
+        
+        if (!title) {
+            showError('Task title is required');
+            return;
+        }
+        
+        // Convert date input to ISO string if provided
+        let dueDate = null;
+        if (dueDateInput) {
+            dueDate = new Date(dueDateInput).toISOString();
+        }
+        
+        const taskData = {
+            title,
+            description,
+            due_date: dueDate,
+            assigned_to: assignees
+        };
+        
+        const task = await createTask(boardId, taskData);
+        if (task) {
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('createTaskModal')).hide();
+            
+            // Clear form
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDescription').value = '';
+            document.getElementById('taskDueDate').value = '';
+            $('#taskAssignees').val(null).trigger('change');
+            
+            // Add task to local array and reload
+            boardTasks.push(task);
+            loadTasks();
+            
+            showToast('Task created successfully!');
+        }
+    });
+    
+    // Handle update task form submission
+    document.getElementById('updateTaskBtn').addEventListener('click', async function() {
+        const taskId = document.getElementById('editTaskId').value;
+        const title = document.getElementById('editTaskTitle').value.trim();
+        const description = document.getElementById('editTaskDescription').value.trim();
+        const dueDateInput = document.getElementById('editTaskDueDate').value;
+        const assignees = $('#editTaskAssignees').val();
+        
+        if (!title) {
+            showError('Task title is required');
+            return;
+        }
+        
+        // Convert date input to ISO string if provided
+        let dueDate = null;
+        if (dueDateInput) {
+            dueDate = new Date(dueDateInput).toISOString();
+        }
+        
+        const taskData = {
+            title,
+            description,
+            due_date: dueDate,
+            assigned_to: assignees
+        };
+        
+        const task = await updateTask(taskId, taskData);
+        if (task) {
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('editTaskModal')).hide();
+            
+            // Update task in local array
+            const index = boardTasks.findIndex(t => t.id === taskId);
+            if (index !== -1) {
+                boardTasks[index] = task;
+                loadTasks();
+            }
+            
+            showToast('Task updated successfully!');
+        }
+    });
+    
+    // Handle update board form submission
+    document.getElementById('updateBoardBtn').addEventListener('click', async function() {
+        const name = document.getElementById('editBoardName').value.trim();
+        const description = document.getElementById('editBoardDescription').value.trim();
+        
+        if (!name) {
+            showError('Board name is required');
+            return;
+        }
+        
+        const boardData = {
+            name,
+            description
+        };
+        
+        const board = await updateBoard(boardId, boardData);
+        if (board) {
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('editBoardModal')).hide();
+            
+            // Update board name
+            document.getElementById('board-name').textContent = name;
+            boardData.name = name;
+            boardData.description = description;
+            
+            showToast('Board updated successfully!');
+        }
+    });
+    
+    // Handle add user form submission
+    document.getElementById('addUserBtn').addEventListener('click', async function() {
+        const email = document.getElementById('userEmail').value.trim();
+        
+        if (!email) {
+            showError('Email is required');
+            return;
+        }
+        
+        const user = await addUserToBoard(boardId, email);
+        if (user) {
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
+            
+            // Clear form
+            document.getElementById('userEmail').value = '';
+            
+            // Add user to local array and reload
+            boardUsers.push(user);
+            loadBoardUsers();
+            
+            showToast('User added successfully!');
+        }
+    });
+</script>
+{% endblock %}

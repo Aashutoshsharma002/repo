@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Task Management System{% endblock %}
+
+{% block content %}
+<!-- Welcome section for non-authenticated users -->
+<div id="welcome-section" style="display: none;">
+    <div class="container">
+        <div class="row align-items-center py-5">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-3">Task Management Made Simple</h1>
+                <p class="lead mb-4">Stay organized, collaborate efficiently, and get more done with our intuitive task management system.</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    <a href="/register" class="btn btn-primary btn-lg px-4 me-md-2">Get Started</a>
+                    <a href="/login" class="btn btn-outline-secondary btn-lg px-4">Sign In</a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="p-5 text-center">
+                    <i class="fas fa-tasks fa-8x text-primary mb-4"></i>
+                    <div class="d-flex justify-content-center">
+                        <div class="badge bg-primary fs-6 me-2">Organize</div>
+                        <div class="badge bg-success fs-6 me-2">Collaborate</div>
+                        <div class="badge bg-info fs-6">Track Progress</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row g-4 py-5">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-clipboard-list fa-3x text-primary mb-3"></i>
+                        <h4>Create Boards</h4>
+                        <p class="text-muted">Organize your tasks into different boards for projects, teams, or areas of responsibility.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                        <h4>Collaborate</h4>
+                        <p class="text-muted">Share boards with team members and work together on tasks efficiently.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-check-circle fa-3x text-primary mb-3"></i>
+                        <h4>Track Progress</h4>
+                        <p class="text-muted">Mark tasks as complete and monitor progress on your projects easily.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Boards section for authenticated users -->
+<div id="boards-section" style="display: none;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Your Task Boards</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBoardModal">
+            <i class="fas fa-plus me-1"></i> Create Board
+        </button>
+    </div>
+
+    <div class="row" id="boards-container">
+        <!-- Boards will be loaded here dynamically -->
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">Loading your boards...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Create Board Modal -->
+<div class="modal fade" id="createBoardModal" tabindex="-1" aria-labelledby="createBoardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createBoardModalLabel">Create New Board</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createBoardForm">
+                    <div class="mb-3">
+                        <label for="boardName" class="form-label">Board Name</label>
+                        <input type="text" class="form-control" id="boardName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="boardDescription" class="form-label">Description (optional)</label>
+                        <textarea class="form-control" id="boardDescription" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="createBoardBtn">Create Board</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Initialize Firebase with server-provided config -->
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
+    import { getAuth } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
+    
+    // Firebase configuration from server variables
+    const firebaseConfig = {
+        apiKey: "{{ firebase_config.apiKey }}",
+        authDomain: "{{ firebase_config.authDomain }}",
+        projectId: "{{ firebase_config.projectId }}",
+        storageBucket: "{{ firebase_config.storageBucket }}",
+        appId: "{{ firebase_config.appId }}"
+    };
+    
+    // Initialize Firebase with the server-provided config
+    const firebaseApp = initializeApp(firebaseConfig);
+    // Make auth available globally for the auth.js script
+    window.auth = getAuth(firebaseApp);
+    
+    // Check authentication and show appropriate section
+    document.addEventListener('DOMContentLoaded', function() {
+        const auth = getAuth();
+        auth.onAuthStateChanged(function(user) {
+            if (user) {
+                // User is logged in, show boards section
+                document.getElementById('welcome-section').style.display = 'none';
+                document.getElementById('boards-section').style.display = 'block';
+                loadBoards();
+            } else {
+                // User is not logged in, show welcome section
+                document.getElementById('welcome-section').style.display = 'block';
+                document.getElementById('boards-section').style.display = 'none';
+            }
+        });
+    });
+    
+    // Function to load all boards
+    async function loadBoards() {
+        const boards = await getBoards();
+        const boardsContainer = document.getElementById('boards-container');
+        
+        // Clear loading indicator
+        boardsContainer.innerHTML = '';
+        
+        if (boards.length === 0) {
+            boardsContainer.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-clipboard-list fa-4x mb-3 text-muted"></i>
+                    <h4>No boards yet</h4>
+                    <p>Create a new board to get started!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Sort boards: own boards first, then shared boards
+        boards.sort((a, b) => {
+            const aOwner = a.creator_id === currentUser.uid;
+            const bOwner = b.creator_id === currentUser.uid;
+            if (aOwner !== bOwner) return aOwner ? -1 : 1;
+            return new Date(b.created_at) - new Date(a.created_at);
+        });
+        
+        // Render boards
+        boards.forEach(board => {
+            const isOwner = board.creator_id === currentUser.uid;
+            
+            const boardCard = document.createElement('div');
+            boardCard.className = 'col-md-4 mb-4';
+            boardCard.innerHTML = `
+                <div class="card h-100 board-card">
+                    ${isOwner ? '<span class="badge bg-primary board-owner-badge">Owner</span>' : ''}
+                    <div class="card-body">
+                        <h5 class="card-title">${board.name}</h5>
+                        <p class="card-text text-muted">${board.description || 'No description'}</p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="/board/${board.id}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-tasks me-1"></i> View Board
+                        </a>
+                        ${isOwner ? `
+                            <button class="btn btn-sm btn-outline-danger float-end" onclick="confirmDeleteBoard('${board.id}', '${board.name}')">
+                                <i class="fas fa-trash me-1"></i> Delete
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            boardsContainer.appendChild(boardCard);
+        });
+    }
+    
+    // Handle create board form submission
+    document.getElementById('createBoardBtn').addEventListener('click', async function() {
+        const name = document.getElementById('boardName').value.trim();
+        const description = document.getElementById('boardDescription').value.trim();
+        
+        if (!name) {
+            showError('Board name is required');
+            return;
+        }
+        
+        const board = await createBoard(name, description);
+        if (board) {
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('createBoardModal')).hide();
+            
+            // Clear form
+            document.getElementById('boardName').value = '';
+            document.getElementById('boardDescription').value = '';
+            
+            // Show success message
+            showToast('Board created successfully!');
+            
+            // Reload boards
+            loadBoards();
+        }
+    });
+    
+    // Confirm delete board - make it available globally
+    window.confirmDeleteBoard = function(boardId, boardName) {
+        if (confirm(`Are you sure you want to delete the board "${boardName}"?\nThis action cannot be undone.`)) {
+            deleteBoard(boardId).then(result => {
+                if (result) {
+                    showToast('Board deleted successfully!');
+                    loadBoards();
+                }
+            });
+        }
+    }
+</script>
+{% endblock %}
