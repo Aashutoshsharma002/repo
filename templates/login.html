@@ -1,128 +1,128 @@
 {% extends "base.html" %}
 
-{% block title %}Login - Task Management System{% endblock %}
+{% block title %}Login - Task Board Management System{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h2 class="text-center mb-4">Task Management System</h2>
-                    
-                    <!-- Tab navigation -->
-                    <ul class="nav nav-tabs mb-4" id="authTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab" aria-controls="login" aria-selected="true">Login</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup" type="button" role="tab" aria-controls="signup" aria-selected="false">Sign Up</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="reset-tab" data-bs-toggle="tab" data-bs-target="#reset" type="button" role="tab" aria-controls="reset" aria-selected="false">Reset Password</button>
-                        </li>
-                    </ul>
-                    
-                    <!-- Tab content -->
-                    <div class="tab-content" id="authTabsContent">
-                        <!-- Login form -->
-                        <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
-                            <form id="login-form">
-                                <div class="mb-3">
-                                    <label for="login-email" class="form-label">Email address</label>
-                                    <input type="email" class="form-control" id="login-email" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="login-password" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="login-password" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100">Login</button>
-                                <div class="text-center mt-3">
-                                    <p>Don't have an account? <a href="/register">Register here</a></p>
-                                </div>
-                            </form>
-                        </div>
-                        
-                        <!-- Signup form -->
-                        <div class="tab-pane fade" id="signup" role="tabpanel" aria-labelledby="signup-tab">
-                            <form id="signup-form">
-                                <div class="mb-3">
-                                    <label for="signup-name" class="form-label">Display Name</label>
-                                    <input type="text" class="form-control" id="signup-name" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="signup-email" class="form-label">Email address</label>
-                                    <input type="email" class="form-control" id="signup-email" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="signup-password" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="signup-password" required minlength="6">
-                                    <div class="form-text">Password must be at least 6 characters</div>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100">Sign Up</button>
-                            </form>
-                        </div>
-                        
-                        <!-- Reset password form -->
-                        <div class="tab-pane fade" id="reset" role="tabpanel" aria-labelledby="reset-tab">
-                            <form id="reset-form">
-                                <div class="mb-3">
-                                    <label for="reset-email" class="form-label">Email address</label>
-                                    <input type="email" class="form-control" id="reset-email" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100">Reset Password</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="login-container">
+  <div class="login-logo">
+    <i class="fas fa-tasks fa-3x text-primary mb-3"></i>
+    <h2>Task Board</h2>
+    <p class="text-muted">Sign in to access your boards</p>
+  </div>
+  
+  <div class="alert alert-danger d-none" id="login-error" role="alert"></div>
+  
+  <form id="login-form">
+    <div class="mb-3">
+      <label for="email" class="form-label">Email address</label>
+      <input type="email" class="form-control" id="email" name="email" required>
     </div>
+    
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input type="password" class="form-control" id="password" name="password" required>
+    </div>
+    
+    <div class="d-grid gap-2">
+      <button type="submit" class="btn btn-primary" id="login-submit">
+        <i class="fas fa-sign-in-alt me-2"></i> Log In
+      </button>
+      
+      <div class="text-center my-3">
+        <span class="text-muted">Don't have an account?</span>
+      </div>
+      
+      <a href="/register" class="btn btn-outline-secondary">
+        <i class="fas fa-user-plus me-2"></i> Create Account
+      </a>
+    </div>
+  </form>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<!-- Override Firebase Config with server-provided values -->
-<script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
-    import { getAuth } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('login-form');
     
-    // Firebase configuration from server variables
-    const firebaseConfig = {
-        apiKey: "{{ firebase_config.apiKey }}",
-        authDomain: "{{ firebase_config.authDomain }}",
-        projectId: "{{ firebase_config.projectId }}",
-        storageBucket: "{{ firebase_config.storageBucket }}",
-        appId: "{{ firebase_config.appId }}"
-    };
-    
-    // Initialize Firebase with the server-provided config
-    const firebaseApp = initializeApp(firebaseConfig);
-    // Make auth available globally for the auth.js script
-    window.auth = getAuth(firebaseApp);
-    
-    // Handle login form submission
-    document.getElementById('login-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        signInWithEmail(email, password);
+    loginForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      // Get form values
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      // Show loading state
+      const submitBtn = document.getElementById('login-submit');
+      const originalBtnText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="loading-spinner"></span> Logging in...';
+      
+      try {
+        // Sign in with Firebase Authentication
+        const auth = firebase.auth();
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        
+        // Get user ID token
+        const idToken = await user.getIdToken();
+        
+        // Send token to backend to create session
+        const response = await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            idToken: idToken
+          })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || 'Failed to log in');
+        }
+        
+        const data = await response.json();
+        
+        // Redirect to dashboard
+        window.location.href = data.redirect || '/dashboard';
+        
+      } catch (error) {
+        // Show error message
+        const errorElement = document.getElementById('login-error');
+        
+        // Format Firebase error messages
+        let errorMessage = 'Failed to log in';
+        if (error.code) {
+          switch (error.code) {
+            case 'auth/user-not-found':
+              errorMessage = 'No account found with this email address';
+              break;
+            case 'auth/wrong-password':
+              errorMessage = 'Incorrect password';
+              break;
+            case 'auth/invalid-email':
+              errorMessage = 'Invalid email format';
+              break;
+            case 'auth/user-disabled':
+              errorMessage = 'This account has been disabled';
+              break;
+            default:
+              errorMessage = error.message || 'Authentication failed';
+          }
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        errorElement.textContent = errorMessage;
+        errorElement.classList.remove('d-none');
+        
+        // Reset button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+      }
     });
-    
-    // Handle signup form submission
-    document.getElementById('signup-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const name = document.getElementById('signup-name').value;
-        const email = document.getElementById('signup-email').value;
-        const password = document.getElementById('signup-password').value;
-        signUpWithEmail(email, password, name);
-    });
-    
-    // Handle reset password form submission
-    document.getElementById('reset-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const email = document.getElementById('reset-email').value;
-        resetPassword(email);
-    });
+  });
 </script>
 {% endblock %}

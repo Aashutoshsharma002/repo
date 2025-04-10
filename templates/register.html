@@ -1,90 +1,151 @@
 {% extends "base.html" %}
 
-{% block title %}Register - Task Management System{% endblock %}
+{% block title %}Register - Task Board Management System{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h2 class="text-center mb-4">Create Your Account</h2>
-                    
-                    <!-- Registration form -->
-                    <form id="signup-form">
-                        <div class="mb-3">
-                            <label for="signup-name" class="form-label">Display Name</label>
-                            <input type="text" class="form-control" id="signup-name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="signup-email" class="form-label">Email address</label>
-                            <input type="email" class="form-control" id="signup-email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="signup-password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="signup-password" required minlength="6">
-                            <div class="form-text">Password must be at least 6 characters</div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="signup-confirm-password" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="signup-confirm-password" required minlength="6">
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Create Account</button>
-                    </form>
-                    
-                    <div class="text-center mt-3">
-                        <p>Already have an account? <a href="/login">Log in here</a></p>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="login-container">
+  <div class="login-logo">
+    <i class="fas fa-tasks fa-3x text-primary mb-3"></i>
+    <h2>Task Board</h2>
+    <p class="text-muted">Create a new account</p>
+  </div>
+  
+  <div class="alert alert-danger d-none" id="register-error" role="alert"></div>
+  
+  <form id="register-form">
+    <div class="mb-3">
+      <label for="email" class="form-label">Email address</label>
+      <input type="email" class="form-control" id="email" required>
     </div>
+    
+    <div class="mb-3">
+      <label for="display-name" class="form-label">Display Name</label>
+      <input type="text" class="form-control" id="display-name" required>
+    </div>
+    
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input type="password" class="form-control" id="password" required>
+      <div class="form-text">Password must be at least 6 characters long.</div>
+    </div>
+    
+    <div class="mb-3">
+      <label for="confirm-password" class="form-label">Confirm Password</label>
+      <input type="password" class="form-control" id="confirm-password" required>
+    </div>
+    
+    <div class="d-grid gap-2">
+      <button type="submit" class="btn btn-primary" id="register-submit">
+        <i class="fas fa-user-plus me-2"></i> Create Account
+      </button>
+      
+      <div class="text-center my-3">
+        <span class="text-muted">Already have an account?</span>
+      </div>
+      
+      <a href="/login" class="btn btn-outline-secondary">
+        <i class="fas fa-sign-in-alt me-2"></i> Log In
+      </a>
+    </div>
+  </form>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<!-- Override Firebase Config with server-provided values -->
-<script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
-    import { getAuth } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
-    import { signUpWithEmail, showError } from '/static/js/firebase-auth.js';
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const registerForm = document.getElementById('register-form');
     
-    const firebaseConfig = {
-        apiKey: "{{ firebase_config.apiKey }}",
-        authDomain: "{{ firebase_config.authDomain }}",
-        projectId: "{{ firebase_config.projectId }}",
-        storageBucket: "{{ firebase_config.storageBucket }}",
-        appId: "{{ firebase_config.appId }}"
-    };
-
-    const firebaseApp = initializeApp(firebaseConfig);
-    window.auth = getAuth(firebaseApp);
-
-    // Wait for firebase-auth.js to fully load and register its globals
-    document.addEventListener('DOMContentLoaded', () => {
-        const form = document.getElementById('signup-form');
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('signup-name').value;
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            const confirmPassword = document.getElementById('signup-confirm-password').value;
-
-            if (password !== confirmPassword) {
-                if (window.showError) {
-                    window.showError('Passwords do not match');
-                } else {
-                    alert('Passwords do not match');
-                }
-                return;
-            }
-
-            if (window.signUpWithEmail) {
-                window.signUpWithEmail(email, password, name);
-            } else {
-                alert("signUpWithEmail is not loaded yet.");
-            }
+    registerForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      // Get form values
+      const email = document.getElementById('email').value;
+      const displayName = document.getElementById('display-name').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+      
+      // Validate password match
+      if (password !== confirmPassword) {
+        const errorElement = document.getElementById('register-error');
+        errorElement.textContent = 'Passwords do not match';
+        errorElement.classList.remove('d-none');
+        return;
+      }
+      
+      // Show loading state
+      const submitBtn = document.getElementById('register-submit');
+      const originalBtnText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="loading-spinner"></span> Creating Account...';
+      
+      try {
+        // Register with Firebase Authentication
+        const auth = firebase.auth();
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        
+        // Update display name
+        await user.updateProfile({
+          displayName: displayName
         });
+        
+        // Get user ID token
+        const idToken = await user.getIdToken();
+        
+        // Send token to backend to create session
+        const response = await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            idToken: idToken
+          })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || 'Failed to create account');
+        }
+        
+        const data = await response.json();
+        
+        // Redirect to dashboard
+        window.location.href = data.redirect || '/dashboard';
+        
+      } catch (error) {
+        // Show error message
+        const errorElement = document.getElementById('register-error');
+        
+        // Format Firebase error messages
+        let errorMessage = 'Failed to create account';
+        if (error.code) {
+          switch (error.code) {
+            case 'auth/email-already-in-use':
+              errorMessage = 'Email address is already in use';
+              break;
+            case 'auth/invalid-email':
+              errorMessage = 'Invalid email format';
+              break;
+            case 'auth/weak-password':
+              errorMessage = 'Password is too weak. Please use at least 6 characters';
+              break;
+            default:
+              errorMessage = error.message || 'Registration failed';
+          }
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        errorElement.textContent = errorMessage;
+        errorElement.classList.remove('d-none');
+        
+        // Reset button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+      }
     });
+  });
 </script>
 {% endblock %}
