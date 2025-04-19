@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Attribute - Puma WMS{% endblock %}
+
+{% block page_title %}Edit Attribute: {{ attribute.name }}{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('admin.attributes') }}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left me-2"></i> Back to Attributes
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <i class="fas fa-edit me-2"></i> Edit Attribute
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('admin.edit_attribute', attr_id=attribute.id) }}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Attribute Name</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ attribute.name }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="type" class="form-label">Attribute Type</label>
+                        <input type="text" class="form-control" value="{{ attribute.type|title }}" readonly>
+                        <div class="form-text">Attribute type cannot be changed after creation</div>
+                    </div>
+                    
+                    {% if attribute.type == 'dropdown' %}
+                    <div class="mb-3">
+                        <label for="options" class="form-label">Dropdown Options</label>
+                        <textarea class="form-control" id="options" name="options" rows="3">{{ options_str }}</textarea>
+                        <div class="form-text">Enter comma-separated options for the dropdown</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="required" name="required" {% if attribute.required %}checked{% endif %}>
+                        <label class="form-check-label" for="required">
+                            Required Field
+                        </label>
+                    </div>
+                    
+                    <div class="d-grid gap-2 col-md-6 mx-auto mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> Update Attribute
+                        </button>
+                        <a href="{{ url_for('admin.attributes') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Usage Information -->
+<div class="row mt-4">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <i class="fas fa-info-circle me-2"></i> Attribute Usage Information
+            </div>
+            <div class="card-body">
+                <p class="mb-0">This attribute is currently used by <span class="fw-bold">{{ attribute.attributes|length }}</span> products.</p>
+                <div class="alert alert-warning mt-3 mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i> Changes to the attribute name will affect all products using this attribute.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

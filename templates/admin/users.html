@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management - Puma WMS{% endblock %}
+
+{% block page_title %}User Management{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('auth.register') }}" class="btn btn-primary">
+    <i class="fas fa-user-plus me-2"></i> Add New User
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <i class="fas fa-users me-2"></i> System Users
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>
+                                    <span class="badge {% if user.role == 'admin' %}bg-danger{% elif user.role == 'staff' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                        {{ user.role|title }}
+                                    </span>
+                                </td>
+                                <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        {% if user.id != current_user.id %}
+                                        <button type="button" class="btn btn-danger" onclick="confirmDelete({{ user.id }}, '{{ user.username }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        {% else %}
+                                        <span class="badge bg-info">Current User</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Role Information Card -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <i class="fas fa-shield-alt me-2"></i> User Roles
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-header bg-danger text-white">Admin</div>
+                            <div class="card-body">
+                                <p class="card-text">Full access to all system features including:</p>
+                                <ul class="mb-0">
+                                    <li>User management</li>
+                                    <li>Custom attributes</li>
+                                    <li>System settings</li>
+                                    <li>Inventory adjustment</li>
+                                    <li>Import/export data</li>
+                                    <li>Delete products</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-header bg-primary text-white">Staff</div>
+                            <div class="card-body">
+                                <p class="card-text">Access to operational features including:</p>
+                                <ul class="mb-0">
+                                    <li>Add/edit products</li>
+                                    <li>Manage inventory</li>
+                                    <li>Process stock in/out</li>
+                                    <li>Generate reports</li>
+                                    <li>Scan products</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-header bg-secondary text-white">Viewer</div>
+                            <div class="card-body">
+                                <p class="card-text">Read-only access including:</p>
+                                <ul class="mb-0">
+                                    <li>View products</li>
+                                    <li>View inventory levels</li>
+                                    <li>Generate reports</li>
+                                    <li>View history</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete user <span id="userName" class="fw-bold"></span>? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" action="">
+                    <button type="submit" class="btn btn-danger">Delete User</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmDelete(userId, userName) {
+        // Set user name in modal
+        document.getElementById('userName').textContent = userName;
+        
+        // Set form action
+        document.getElementById('deleteForm').action = "{{ url_for('admin.delete_user', user_id=0) }}".replace('/0', '/' + userId);
+        
+        // Show modal
+        var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        deleteModal.show();
+    }
+</script>
+{% endblock %}

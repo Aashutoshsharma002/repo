@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock Out - Puma WMS{% endblock %}
+
+{% block page_title %}Stock Out{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('inventory.index') }}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left me-2"></i> Back to Inventory
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <i class="fas fa-minus-circle me-2"></i> Remove Stock
+            </div>
+            <div class="card-body">
+                <!-- Barcode Scanner -->
+                <div class="mb-4">
+                    <h5 class="border-bottom pb-2 mb-3">Scan Product</h5>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">
+                            <i class="fas fa-barcode"></i>
+                        </span>
+                        <input type="text" class="form-control form-control-lg" id="inventory-barcode-input" 
+                               placeholder="Scan or enter barcode...">
+                        <button class="btn btn-outline-secondary" type="button" id="reset-inventory-scan">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="inventory-loading" style="display: none;" class="text-center my-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    
+                    <div id="inventory-error" class="alert alert-danger" style="display: none;"></div>
+                </div>
+                
+                <!-- Product Info (shown after scan) -->
+                <div id="product-info" style="display: none;"></div>
+                
+                <!-- Stock Out Form -->
+                <div id="inventory-form-container" style="display: none;">
+                    <form method="post" action="{{ url_for('inventory.stock_out') }}">
+                        <input type="hidden" id="product_id" name="product_id">
+                        
+                        <div class="mb-3">
+                            <label for="quantity" class="form-label">Quantity to Remove</label>
+                            <input type="number" class="form-control" id="quantity" name="quantity" min="1" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">Reason</label>
+                            <select class="form-select" id="reason" name="reason" required>
+                                <option value="">Select Reason</option>
+                                <option value="Sale">Sale</option>
+                                <option value="Damaged">Damaged</option>
+                                <option value="Transfer Out">Transfer Out</option>
+                                <option value="Lost">Lost</option>
+                                <option value="Correction">Inventory Correction</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-minus-circle me-2"></i> Remove Stock
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="cancel-form">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Manual Product Selection (alternative to scanning) -->
+                <div id="manual-selection">
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">Or Select Product Manually</h5>
+                    <form method="post" action="{{ url_for('inventory.stock_out') }}">
+                        <div class="mb-3">
+                            <label for="manual_product_id" class="form-label">Select Product</label>
+                            <select class="form-select" id="manual_product_id" name="product_id" required>
+                                <option value="">Choose a product...</option>
+                                {% for product in products %}
+                                <option value="{{ product.id }}" {% if request.args.get('product_id')|int == product.id %}selected{% endif %}>
+                                    {{ product.name }} (SKU: {{ product.sku }}, Current Stock: {{ product.quantity }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="manual_quantity" class="form-label">Quantity to Remove</label>
+                            <input type="number" class="form-control" id="manual_quantity" name="quantity" min="1" value="1" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="manual_reason" class="form-label">Reason</label>
+                            <select class="form-select" id="manual_reason" name="reason" required>
+                                <option value="">Select Reason</option>
+                                <option value="Sale">Sale</option>
+                                <option value="Damaged">Damaged</option>
+                                <option value="Transfer Out">Transfer Out</option>
+                                <option value="Lost">Lost</option>
+                                <option value="Correction">Inventory Correction</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-minus-circle me-2"></i> Remove Stock
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/inventory.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // When product is selected from dropdown, hide scanner section
+        document.getElementById('manual_product_id').addEventListener('change', function() {
+            if (this.value) {
+                document.getElementById('manual-selection').classList.add('active');
+            }
+        });
+        
+        // Cancel button functionality
+        document.getElementById('cancel-form').addEventListener('click', function() {
+            clearInventoryForm();
+            document.getElementById('inventory-barcode-input').value = '';
+            document.getElementById('inventory-barcode-input').focus();
+        });
+        
+        // Check if product_id is in URL params and select in dropdown
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('product_id');
+        if (productId) {
+            document.getElementById('manual_product_id').value = productId;
+            // Focus on the quantity field
+            document.getElementById('manual_quantity').focus();
+        }
+    });
+</script>
+{% endblock %}

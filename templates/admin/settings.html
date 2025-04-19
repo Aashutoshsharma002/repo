@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}System Settings - Puma WMS{% endblock %}
+
+{% block page_title %}System Settings{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- System Overview -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-dark">
+                <i class="fas fa-tachometer-alt me-2"></i> System Overview
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-box me-2"></i> Total Products
+                        </div>
+                        <span class="badge bg-primary rounded-pill">{{ total_products }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-users me-2"></i> System Users
+                        </div>
+                        <span class="badge bg-primary rounded-pill">{{ total_users }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-tags me-2"></i> Custom Attributes
+                        </div>
+                        <span class="badge bg-primary rounded-pill">{{ total_attributes }}</span>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="{{ url_for('admin.users') }}" class="btn btn-outline-primary btn-sm d-block mb-2">
+                        <i class="fas fa-user-cog me-2"></i> Manage Users
+                    </a>
+                    <a href="{{ url_for('admin.attributes') }}" class="btn btn-outline-primary btn-sm d-block mb-2">
+                        <i class="fas fa-tags me-2"></i> Manage Attributes
+                    </a>
+                    <a href="{{ url_for('admin.import_export') }}" class="btn btn-outline-primary btn-sm d-block">
+                        <i class="fas fa-file-import me-2"></i> Import/Export
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Settings -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <i class="fas fa-cog me-2"></i> System Configuration
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('admin.settings') }}">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> Changes to these settings affect how the system operates.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="barcode_type" class="form-label">Default Barcode Type</label>
+                        <select class="form-select" id="barcode_type" name="barcode_type">
+                            <option value="code128" {% if barcode_type == 'code128' %}selected{% endif %}>Code 128</option>
+                            <option value="ean13" {% if barcode_type == 'ean13' %}selected{% endif %}>EAN-13</option>
+                            <option value="upc" {% if barcode_type == 'upc' %}selected{% endif %}>UPC-A</option>
+                        </select>
+                        <div class="form-text">The barcode format used when generating new barcodes.</div>
+                    </div>
+                    
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">Database Configuration</h5>
+                    
+                    <div class="mb-3">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i> 
+                            <strong>Current Database Engine:</strong> {{ "MySQL" if config['DATABASE_TYPE'] == 'mysql' else "SQLite" }}
+                            <p class="mb-0 mt-2">Database type can only be changed during initial setup.</p>
+                        </div>
+                    </div>
+                    
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">Backup & Maintenance</h5>
+                    
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-secondary me-2" id="backup-btn" disabled>
+                            <i class="fas fa-download me-2"></i> Backup Database
+                        </button>
+                        <div class="form-text mt-2">Database backup functionality is available in a future update.</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 col-md-6 mx-auto mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> Save Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

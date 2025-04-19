@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block title %}Add New Product - Puma WMS{% endblock %}
+
+{% block page_title %}Add New Product{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('products.list') }}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left me-2"></i> Back to Products
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <i class="fas fa-plus-circle me-2"></i> New Product Information
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('products.add') }}" enctype="multipart/form-data">
+                    <div class="row">
+                        <!-- Basic Product Information -->
+                        <div class="col-md-6">
+                            <h5 class="border-bottom pb-2 mb-3">Basic Information</h5>
+                            
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Product Name *</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="sku" class="form-label">SKU</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="sku" name="sku" placeholder="Auto-generated if empty">
+                                            <button class="btn btn-outline-secondary" type="button" id="generate-sku">
+                                                <i class="fas fa-random"></i>
+                                            </button>
+                                        </div>
+                                        <div class="form-text">Leave empty for auto-generation</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="barcode" class="form-label">Barcode Value</label>
+                                        <input type="text" class="form-control" id="barcode" name="barcode">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="barcode_image" class="form-label">Barcode Image (GS1 Digital Link 2D)</label>
+                                        <input type="file" class="form-control" id="barcode_image" name="barcode_image" accept="image/*">
+                                        <div class="form-text">Upload the GS1 Digital Link 2D barcode image</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="category" class="form-label">Category</label>
+                                        <input type="text" class="form-control" id="category" name="category" list="categories">
+                                        <datalist id="categories">
+                                            <option value="T-Shirts">
+                                            <option value="Pants">
+                                            <option value="Shoes">
+                                            <option value="Jackets">
+                                            <option value="Accessories">
+                                        </datalist>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="location" class="form-label">Warehouse Location</label>
+                                        <input type="text" class="form-control" id="location" name="location">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="size" class="form-label">Size</label>
+                                        <select class="form-select" id="size" name="size">
+                                            <option value="">Select Size</option>
+                                            <option value="XS">XS</option>
+                                            <option value="S">S</option>
+                                            <option value="M">M</option>
+                                            <option value="L">L</option>
+                                            <option value="XL">XL</option>
+                                            <option value="XXL">XXL</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="color" class="form-label">Color</label>
+                                        <input type="text" class="form-control" id="color" name="color">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="gender" class="form-label">Gender</label>
+                                        <select class="form-select" id="gender" name="gender">
+                                            <option value="">Select Gender</option>
+                                            <option value="Men">Men</option>
+                                            <option value="Women">Women</option>
+                                            <option value="Unisex">Unisex</option>
+                                            <option value="Kids">Kids</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="material" class="form-label">Material</label>
+                                <input type="text" class="form-control" id="material" name="material">
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="price_cost" class="form-label">Cost Price (₹)</label>
+                                        <input type="number" class="form-control" id="price_cost" name="price_cost" step="0.01" min="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="price_sell" class="form-label">Selling Price (₹)</label>
+                                        <input type="number" class="form-control" id="price_sell" name="price_sell" step="0.01" min="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="quantity" class="form-label">Initial Quantity</label>
+                                        <input type="number" class="form-control" id="quantity" name="quantity" min="0" value="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Product Images and Attributes -->
+                        <div class="col-md-6">
+                            <h5 class="border-bottom pb-2 mb-3">Images</h5>
+                            <div class="mb-3">
+                                <label for="images" class="form-label">Product Images (Max 5MB each)</label>
+                                <input type="file" class="form-control" id="images" name="images" multiple accept="image/*">
+                                <div class="form-text">Upload up to 5 images. First image will be the featured image.</div>
+                            </div>
+                            
+                            <div class="row" id="image-previews">
+                                <!-- Image previews will be shown here -->
+                            </div>
+                            
+                            <h5 class="border-bottom pb-2 mb-3 mt-4">Custom Attributes</h5>
+                            
+                            <!-- Dynamic Attributes -->
+                            {% if attribute_defs %}
+                                {% for attr in attribute_defs %}
+                                <div class="mb-3">
+                                    <label for="attribute_{{ attr.id }}" class="form-label">{{ attr.name }}{% if attr.required %} *{% endif %}</label>
+                                    
+                                    {% if attr.type == 'text' %}
+                                        <input type="text" class="form-control" id="attribute_{{ attr.id }}" name="attribute_{{ attr.id }}" {% if attr.required %}required{% endif %}>
+                                    
+                                    {% elif attr.type == 'dropdown' %}
+                                        <select class="form-select" id="attribute_{{ attr.id }}" name="attribute_{{ attr.id }}" data-attribute-type="dropdown" {% if attr.required %}required{% endif %}>
+                                            <option value="">Select {{ attr.name }}</option>
+                                            {% for option in attr.get_options_list() %}
+                                                <option value="{{ option }}">{{ option }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    
+                                    {% elif attr.type == 'checkbox' %}
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="attribute_{{ attr.id }}" name="attribute_{{ attr.id }}" value="true" data-attribute-type="checkbox">
+                                            <label class="form-check-label" for="attribute_{{ attr.id }}">Yes</label>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="alert alert-info">
+                                    No custom attributes defined. Admins can add product attributes in the Admin section.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 col-md-6 mx-auto mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-2"></i> Save Product
+                        </button>
+                        <a href="{{ url_for('products.list') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/product.js') }}"></script>
+<script>
+    // Generate random SKU
+    document.getElementById('generate-sku').addEventListener('click', function() {
+        const prefix = "JOCKEY";
+        const timestamp = new Date().toISOString().slice(2,8).replace(/-/g, "");
+        const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+        document.getElementById('sku').value = `${prefix}-${timestamp}-${random}`;
+    });
+</script>
+{% endblock %}

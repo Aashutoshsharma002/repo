@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventory Report - Puma WMS{% endblock %}
+
+{% block page_title %}Inventory Report{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('reports.index') }}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left me-2"></i> Back to Reports
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <i class="fas fa-file-alt me-2"></i> Generate Inventory Report
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('reports.inventory') }}">
+                    <input type="hidden" name="report_type" value="pdf">
+                    
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Filter by Category</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                            <option value="{{ category }}">{{ category }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label">Report Format</label>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-primary flex-grow-1 export-pdf">
+                                    <i class="fas fa-file-pdf me-2"></i> Export as PDF
+                                </button>
+                                <button type="button" class="btn btn-success flex-grow-1 export-excel">
+                                    <i class="fas fa-file-excel me-2"></i> Export as Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> 
+                        <strong>Report Contents:</strong> 
+                        <p class="mb-0">The inventory report includes product SKU, name, category, size, color, quantity, and price information.</p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <i class="fas fa-chart-pie me-2"></i> Inventory Overview
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div style="height: 300px;">
+                            <canvas id="inventory-by-category" 
+                                    data-labels="{{ categories|tojson }}" 
+                                    data-values="{{ category_quantities|tojson if category_quantities else '[]' }}">
+                            </canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Product Count</th>
+                                        <th>Total Quantity</th>
+                                        <th>Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for category, stats in category_stats.items() %}
+                                    <tr>
+                                        <td>{{ category }}</td>
+                                        <td>{{ stats.count }}</td>
+                                        <td>{{ stats.quantity }}</td>
+                                        <td>₹{{ "%.2f"|format(stats.value) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-dark">
+                                        <th>Total</th>
+                                        <th>{{ total_stats.count }}</th>
+                                        <th>{{ total_stats.quantity }}</th>
+                                        <th>₹{{ "%.2f"|format(total_stats.value) }}</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/reports.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Server Error - Jockey WMS{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <h1 class="display-1 fw-bold">500</h1>
+                        <h2 class="mb-4">Server Error</h2>
+                        <p class="lead mb-4">Something went wrong on our end. Please try again later or contact the administrator.</p>
+                        
+                        <img src="{{ url_for('static', filename='images/Jockey-International-logo-vector-01.svg') }}" alt="Jockey Logo" style="width: 100px;" class="mb-4">
+                        
+                        <div class="d-grid gap-2 col-6 mx-auto">
+                            <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-home me-2"></i> Go to Dashboard
+                            </a>
+                            <button onclick="history.back()" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i> Go Back
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

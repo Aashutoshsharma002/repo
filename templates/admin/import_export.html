@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}Import/Export - Puma WMS{% endblock %}
+
+{% block page_title %}Import & Export Data{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('admin.index') }}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left me-2"></i> Back to Admin
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Import Section -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-dark">
+                <i class="fas fa-file-import me-2"></i> Import Products
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('admin.import_export') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="import">
+                    
+                    <div class="mb-3">
+                        <label for="excel_file" class="form-label">Select Excel File</label>
+                        <input type="file" class="form-control" id="excel_file" name="excel_file" accept=".xlsx,.xls" required>
+                        <div class="form-text">Upload an Excel file (.xlsx or .xls) with product data</div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i> Excel Format</h6>
+                        <p>Your Excel file should have these columns:</p>
+                        <ul class="mb-0 small">
+                            <li><strong>Required:</strong> SKU, Name</li>
+                            <li><strong>Optional:</strong> Barcode, Category, Size, Color, Gender, Material, Quantity, Cost Price, Selling Price, Location, Image URL</li>
+                            <li>Any additional columns will be treated as custom attributes</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i> Import Products
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Export Section -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <i class="fas fa-file-export me-2"></i> Export Data
+            </div>
+            <div class="card-body">
+                <p>Export your product data to Excel for external analysis or backup.</p>
+                
+                <div class="list-group mb-3">
+                    <a href="{{ url_for('reports.inventory', report_type='excel') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-boxes me-2"></i> All Products
+                            <small class="d-block text-muted">Complete product catalog with all attributes</small>
+                        </div>
+                        <i class="fas fa-download"></i>
+                    </a>
+                    
+                    <a href="{{ url_for('reports.low_stock', report_type='excel') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-exclamation-triangle me-2"></i> Low Stock Items
+                            <small class="d-block text-muted">Products with low inventory levels</small>
+                        </div>
+                        <i class="fas fa-download"></i>
+                    </a>
+                    
+                    <a href="{{ url_for('reports.monthly', report_type='excel') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-chart-line me-2"></i> Monthly Movement
+                            <small class="d-block text-muted">Inventory changes for the current month</small>
+                        </div>
+                        <i class="fas fa-download"></i>
+                    </a>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <h6 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i> Important Note</h6>
+                    <p class="mb-0">The exported Excel file can be modified and re-imported to update existing products. Products are matched by SKU.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template Section -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <i class="fas fa-table me-2"></i> Excel Template Format
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>SKU</th>
+                                <th>Name</th>
+                                <th>Barcode</th>
+                                <th>Category</th>
+                                <th>Size</th>
+                                <th>Color</th>
+                                <th>Gender</th>
+                                <th>Material</th>
+                                <th>Quantity</th>
+                                <th>Cost Price</th>
+                                <th>Selling Price</th>
+                                <th>Location</th>
+                                <th>Image URL</th>
+                                <th>Fabric Type</th>
+                                <th>Neck Style</th>
+                                <th>...</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>PUMA-220415-AB23</td>
+                                <td>Training T-Shirt</td>
+                                <td>1234567890123</td>
+                                <td>T-Shirts</td>
+                                <td>M</td>
+                                <td>Red</td>
+                                <td>Men</td>
+                                <td>Cotton</td>
+                                <td>25</td>
+                                <td>15.99</td>
+                                <td>29.99</td>
+                                <td>A-12-3</td>
+                                <td>https://example.com/image.jpg</td>
+                                <td>Dri-Fit</td>
+                                <td>Crew</td>
+                                <td>...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-muted small mt-2">
+                    <p>Note: The columns after "Image URL" are treated as custom attributes. If they don't exist in the system, they will be created automatically.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

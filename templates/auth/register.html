@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Register New User - Puma WMS{% endblock %}
+
+{% block page_title %}Register New User{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('admin.users') }}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left me-2"></i> Back to Users
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <i class="fas fa-user-plus me-2"></i> Create New User
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('auth.register') }}">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Role</label>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="staff">Staff</option>
+                            <option value="admin">Admin</option>
+                            <option value="viewer">Viewer</option>
+                        </select>
+                        <div class="form-text text-muted">
+                            <ul class="mb-0 ps-3 small">
+                                <li><strong>Admin:</strong> Full access to all features</li>
+                                <li><strong>Staff:</strong> Can manage inventory and products</li>
+                                <li><strong>Viewer:</strong> Read-only access to reports and inventory</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Create User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

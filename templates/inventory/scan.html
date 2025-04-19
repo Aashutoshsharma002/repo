@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}Scan Inventory - Jockey WMS{% endblock %}
+
+{% block page_title %}Barcode Scanner{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <i class="fas fa-barcode me-2"></i> Scan Product Barcode
+            </div>
+            <div class="card-body">
+                <div class="barcode-scanner">
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle me-2"></i>GS1 Digital Link 2D Barcode Scanner</h5>
+                        <p class="mb-1">This system supports GS1's Digital Link 2D barcodes that are uploaded for each unique product.</p>
+                        <p class="mb-0">Simply scan a barcode using a connected scanner device or enter it manually below.</p>
+                    </div>
+                    
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">
+                            <i class="fas fa-barcode"></i>
+                        </span>
+                        <input type="text" class="form-control form-control-lg" id="barcode-input" placeholder="Scan or enter barcode..." autofocus>
+                        <button class="btn btn-outline-secondary" type="button" id="reset-scan">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="text-center mb-3">
+                        <small class="text-muted">Press Enter after manual entry or connect a compatible barcode scanner</small>
+                    </div>
+                    
+                    <div id="scan-loading" style="display: none;" class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Searching product...</p>
+                    </div>
+                    
+                    <div id="scan-error" class="alert alert-danger" style="display: none;"></div>
+                </div>
+                
+                <div id="scan-result" style="display: none;"></div>
+                
+                <div class="mt-4">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('inventory.stock_in') }}" class="btn btn-success mb-2">
+                            <i class="fas fa-plus-circle me-2"></i> Stock In
+                        </a>
+                        <a href="{{ url_for('inventory.stock_out') }}" class="btn btn-danger mb-2">
+                            <i class="fas fa-minus-circle me-2"></i> Stock Out
+                        </a>
+                        {% if current_user.is_admin() %}
+                        <a href="{{ url_for('inventory.adjust') }}" class="btn btn-warning">
+                            <i class="fas fa-wrench me-2"></i> Adjust Inventory
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <!-- Dashboard Stats -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="stat-card bg-primary bg-opacity-10">
+                    <div class="icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="stat-value">{{ total_products }}</div>
+                    <div class="stat-label">Total Products</div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="stat-card bg-success bg-opacity-10">
+                    <div class="icon">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <div class="stat-value">₹{{ "{:,.2f}".format(total_value) }}</div>
+                    <div class="stat-label">Total Value</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Low Stock Items -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <i class="fas fa-exclamation-triangle me-2"></i> Low Stock Alerts
+            </div>
+            <div class="card-body p-0">
+                {% if low_stock %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>SKU</th>
+                                <th>Quantity</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in low_stock %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.sku }}</td>
+                                <td>
+                                    <span class="badge {% if item.quantity <= 0 %}bg-danger{% else %}bg-warning{% endif %}">
+                                        {{ item.quantity }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('inventory.stock_in') }}?product_id={{ item.id }}" class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-plus-circle"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-3 text-center">
+                    <p class="mb-0">No low stock items at the moment</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Recent Activities -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <i class="fas fa-history me-2"></i> Recent Activities
+            </div>
+            <div class="card-body p-0">
+                {% if recent_activities %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Product</th>
+                                <th>Action</th>
+                                <th>Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in recent_activities %}
+                            <tr>
+                                <td>{{ activity.created_at.strftime('%H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('products.view', product_id=activity.product.id) }}" class="text-truncate d-inline-block" style="max-width: 150px;">
+                                        {{ activity.product.name }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge {% if activity.action_type == 'in' %}bg-success{% elif activity.action_type == 'out' %}bg-danger{% else %}bg-info{% endif %}">
+                                        {{ activity.action_type|upper }}
+                                    </span>
+                                </td>
+                                <td>{{ activity.quantity }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-3 text-center">
+                    <p class="mb-0">No recent activities found</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('inventory.history') }}" class="btn btn-sm btn-outline-secondary">View All Activity</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/barcode-scanner.js') }}"></script>
+{% endblock %}

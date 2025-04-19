@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Monthly Report - Puma WMS{% endblock %}
+
+{% block page_title %}Monthly Inventory Movement Report{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('reports.index') }}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left me-2"></i> Back to Reports
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <i class="fas fa-calendar-alt me-2"></i> Generate Monthly Report
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('reports.monthly') }}">
+                    <input type="hidden" name="report_type" value="pdf">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="month" class="form-label">Month</label>
+                            <select class="form-select" id="month" name="month" required>
+                                {% for month_num, month_name in months %}
+                                <option value="{{ month_num }}" {% if month_num == current_month %}selected{% endif %}>{{ month_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="year" class="form-label">Year</label>
+                            <select class="form-select" id="year" name="year" required>
+                                {% for year_value in years %}
+                                <option value="{{ year_value }}" {% if year_value == current_year %}selected{% endif %}>{{ year_value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label">Report Format</label>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-primary flex-grow-1 export-pdf">
+                                    <i class="fas fa-file-pdf me-2"></i> Export as PDF
+                                </button>
+                                <button type="button" class="btn btn-success flex-grow-1 export-excel">
+                                    <i class="fas fa-file-excel me-2"></i> Export as Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> 
+                        <strong>Report Contents:</strong> 
+                        <p class="mb-0">The monthly report summarizes all inventory movements (stock in, stock out, and adjustments) for the selected month, grouped by product.</p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <i class="fas fa-chart-bar me-2"></i> Monthly Movement Trends
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="movement-chart" 
+                            data-labels="{{ ['Week 1', 'Week 2', 'Week 3', 'Week 4']|tojson }}" 
+                            data-stock-in="{{ movement_data.stock_in|tojson if movement_data else '[0, 0, 0, 0]' }}" 
+                            data-stock-out="{{ movement_data.stock_out|tojson if movement_data else '[0, 0, 0, 0]' }}">
+                    </canvas>
+                </div>
+                
+                <div class="text-center mt-3 text-muted small">
+                    <p>Select a month and generate a report to see detailed inventory movement data.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/reports.js') }}"></script>
+{% endblock %}
